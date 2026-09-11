@@ -1,0 +1,15 @@
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+tfplan
+*.tfplan
+
+# Variaveis com segredos — nunca commitar
+*.tfvars
+!*.tfvars.example
+
+# Visual Studio
+.vs/

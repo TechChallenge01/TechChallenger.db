@@ -10,46 +10,22 @@ variable "project_name" {
   default     = "techchallenge"
 }
 
-variable "cluster_name" {
-  description = "Nome do cluster EKS"
+variable "vpc_name" {
+  description = "Tag Name da VPC criada pelo repo TechChallenger.k8s"
+  type        = string
+  default     = "techchallenge-vpc"
+}
+
+variable "public_subnet_name_pattern" {
+  description = "Padrao (com wildcard) da tag Name das subnets publicas do TechChallenger.k8s, onde o RDS e colocado hoje (acesso via SSMS)"
+  type        = string
+  default     = "techchallenge-public-*"
+}
+
+variable "eks_cluster_name" {
+  description = "Nome do cluster EKS criado pelo repo TechChallenger.k8s (usado para liberar acesso do EKS ao banco)"
   type        = string
   default     = "techchallenge"
-}
-
-variable "ecr_repository_name" {
-  description = "Nome do repositorio ECR (deve bater com ECR_REPOSITORY no cd.yml)"
-  type        = string
-  default     = "techchallenger"
-}
-
-variable "kubernetes_version" {
-  description = "Versao do Kubernetes no EKS"
-  type        = string
-  default     = "1.30"
-}
-
-variable "node_instance_types" {
-  description = "Tipos de instancia dos nodes do EKS"
-  type        = list(string)
-  default     = ["t3.medium"]
-}
-
-variable "vpc_cidr" {
-  description = "CIDR block da VPC"
-  type        = string
-  default     = "10.0.0.0/16"
-}
-
-variable "public_subnet_cidrs" {
-  description = "CIDRs das subnets publicas (nodes do EKS)"
-  type        = list(string)
-  default     = ["10.0.1.0/24", "10.0.2.0/24"]
-}
-
-variable "private_subnet_cidrs" {
-  description = "CIDRs das subnets privadas (RDS SQL Server)"
-  type        = list(string)
-  default     = ["10.0.11.0/24", "10.0.12.0/24"]
 }
 
 variable "db_username" {
@@ -85,4 +61,10 @@ variable "db_allocated_storage" {
   description = "Armazenamento alocado (GB) para o RDS"
   type        = number
   default     = 20
+}
+
+variable "ssms_allowed_cidrs" {
+  description = "IPs (CIDR) liberados no security group do RDS para acesso via SSMS durante o desenvolvimento. Lista vazia = sem acesso externo (fica so o acesso vindo do EKS)."
+  type        = list(string)
+  default     = ["179.111.170.52/32"]
 }
