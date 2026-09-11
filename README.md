@@ -61,7 +61,7 @@ cd terraform
 # Senha do RDS (8-128 chars):
 $env:TF_VAR_db_password = "TrocarEssaSenha@2026"
 
-terraform init
+terraform init -backend-config="bucket=<BUCKET_DO_STATE>"
 terraform plan -out tfplan
 terraform apply "tfplan"       # ~8-10 min
 terraform output
@@ -73,6 +73,7 @@ Outputs relevantes: `database_endpoint` (host:porta), `database_username`. Esses
 
 ```powershell
 cd terraform
+terraform init -backend-config="bucket=<BUCKET_DO_STATE>"
 $env:TF_VAR_db_password = "<a mesma senha usada no apply>"
 terraform destroy
 ```
@@ -81,11 +82,14 @@ terraform destroy
 
 ## Estado do Terraform
 
-Hoje o state é **local** (arquivo `terraform.tfstate`, ignorado pelo Git). Para trabalho em equipe, migrar para backend S3 + trava DynamoDB — mesmo padrão já adotado no repo `TechChallenger.auth`.
+Backend **S3** (bucket compartilhado com os demais repos do Tech Challenge, key `techchallenge-db/terraform.tfstate`, versionamento ligado). O bucket é passado em tempo de `init` (`-backend-config="bucket=..."`), nunca fixo no código.
 
 ## CI/CD
 
-**Ainda não implementado.** Próximo passo: workflow GitHub Actions rodando `fmt`/`validate` em PR e `apply` em push nas branches protegidas, com as credenciais do Learner Lab como secrets (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_SESSION_TOKEN`) e `TF_VAR_db_password`.
+- **`ci.yml`** — em todo PR para `main`: `terraform fmt` (advisório) + `terraform validate` (`-backend=false`, não precisa de credenciais AWS nem de senha do banco).
+- **`cd.yml`** — em todo push na `main` (só entra via PR, branch protegida) ou disparo manual: autentica com as credenciais temporárias do Learner Lab e roda `terraform apply`. Pressupõe o `TechChallenger.k8s` já aplicado (VPC/EKS descobertos via data source). Único ambiente, mesmo racional do `TechChallenger.k8s`.
+
+Secrets necessários no repositório: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_SESSION_TOKEN` (temporários do Learner Lab), `TF_STATE_BUCKET` (bucket do state) e `DB_PASSWORD` (senha master do RDS — sem default, obrigatória para o `apply` não travar esperando input).
 
 ## Notas
 
